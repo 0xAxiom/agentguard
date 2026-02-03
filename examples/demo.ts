@@ -4,7 +4,7 @@
  * Run: npx ts-node examples/demo.ts
  */
 
-import { AgentGuard } from '../src';
+import { AgentGuard } from '../src/index.js';
 
 async function demo() {
   console.log('═══════════════════════════════════════════════════════════════');
