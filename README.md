@@ -18,7 +18,7 @@ Stop your agent from draining its wallet, signing malicious transactions, or lea
 | Audit Logger | ✅ Built | 270 |
 | Solana Agent Kit Integration | 🔄 Next | — |
 | On-chain Audit Trail | 📋 Planned | — |
-| Tests & Docs | 📋 Planned | — |
+| Tests | ✅ Complete | 100 tests |
 
 ## Features
 
@@ -93,6 +93,20 @@ git clone https://github.com/0xAxiom/agentguard
 cd agentguard
 node examples/quick-demo.mjs
 ```
+
+## Run Tests
+
+```bash
+npm test        # Run all 100 tests
+npm test -- --watch  # Watch mode
+```
+
+Tests cover:
+- **Firewall:** Spending limits, program allowlist/blocklist, runtime changes
+- **Sanitizer:** 30+ injection patterns, unicode threats, encoding attacks
+- **Isolator:** Private key detection, env var leaks, seed phrases
+- **Audit:** Logging, filtering, statistics, export
+- **Integration:** End-to-end security flows
 
 ## Follow the Build
 
