@@ -8,9 +8,30 @@
  * - Audit trail
  */
 
-export { AgentGuard } from './guard';
-export { TransactionFirewall } from './firewall';
-export { PromptSanitizer } from './sanitizer';
-export { SecretIsolator } from './isolator';
-export { AuditLogger } from './audit';
-export * from './types';
+// Core firewall module
+export { 
+  TransactionFirewall,
+  SpendingLimits,
+  ProgramAllowlist,
+  TransactionSimulator,
+  SAFE_SYSTEM_PROGRAMS,
+  KNOWN_MALICIOUS_PROGRAMS,
+} from './firewall';
+
+export type {
+  FirewallConfig,
+  FirewallResult,
+  FirewallStatus,
+  SpendingLimitConfig,
+  AllowlistConfig,
+  ProgramCheckResult,
+  SimulatorConfig,
+  SimulationResult,
+  BalanceChange,
+} from './firewall';
+
+// TODO: Additional modules to be implemented
+// export { AgentGuard } from './guard';
+// export { PromptSanitizer } from './sanitizer';
+// export { SecretIsolator } from './isolator';
+// export { AuditLogger } from './audit';
