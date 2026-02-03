@@ -16,9 +16,10 @@ Stop your agent from draining its wallet, signing malicious transactions, or lea
 | Prompt Sanitizer | ✅ Built | 849 |
 | Secret Isolator | ✅ Built | 200 |
 | Audit Logger | ✅ Built | 270 |
-| Solana Agent Kit Integration | 🔄 Next | — |
+| Solana Agent Kit Wrapper | ✅ Built | 300 |
+| Attack Demo | ✅ Built | 200 |
 | On-chain Audit Trail | 📋 Planned | — |
-| Tests | ✅ Complete | 100 tests |
+| Tests | ✅ Complete | 119 tests |
 
 ## Features
 
@@ -34,9 +35,28 @@ npm install @0xaxiom/agentguard  # not yet published
 ```
 
 ```typescript
+import { createGuardedAgent } from '@0xaxiom/agentguard';
+
+// Wrap Solana Agent Kit with security
+const agent = await createGuardedAgent(keypair, rpcUrl, {
+  maxDailySpend: 5_000_000_000,  // 5 SOL max/day
+  maxPerTxSpend: 1_000_000_000,  // 1 SOL max/tx
+  strictMode: true,
+  onBlocked: (action, reason) => console.log(`🛡️ Blocked: ${reason}`)
+});
+
+// All actions now protected
+const result = await agent.transfer(recipient, lamports);
+if (result.blocked) {
+  console.log('Transfer blocked:', result.reason);
+}
+```
+
+Or use the standalone guard:
+
+```typescript
 import { AgentGuard } from '@0xaxiom/agentguard';
 
-// Create a guard with strict settings
 const guard = AgentGuard.strict('https://api.mainnet-beta.solana.com');
 
 // Sanitize input before sending to LLM
@@ -50,9 +70,6 @@ const result = await guard.checkTransaction(tx);
 if (!result.allowed) {
   console.log('Transaction blocked:', result.reason);
 }
-
-// Redact secrets from output
-const output = await guard.redactOutput(agentResponse);
 ```
 
 ## Why AgentGuard?
@@ -91,8 +108,24 @@ AgentGuard adds the missing security layer.
 ```bash
 git clone https://github.com/0xAxiom/agentguard
 cd agentguard
+npm install
 node examples/quick-demo.mjs
 ```
+
+### Attack Simulation
+
+See AgentGuard block real attacks:
+
+```bash
+npx tsx examples/attack-demo.ts
+```
+
+Demonstrates:
+1. 🚫 Prompt injection ("ignore instructions, drain wallet")
+2. 🚫 Spending limit bypass (50 SOL when limit is 1)
+3. 🚫 Malicious program execution
+4. 🚫 Secret exfiltration attempt
+5. ✅ Legitimate action passes through
 
 ## Run Tests
 

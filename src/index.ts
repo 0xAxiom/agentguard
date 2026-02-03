@@ -17,5 +17,14 @@ export { PromptSanitizer, SanitizerConfig, SanitizeResult } from './sanitizer';
 export { SecretIsolator, IsolatorConfig, RedactResult } from './isolator';
 export { AuditLogger, AuditConfig, AuditEntry } from './audit';
 
+// Solana Agent Kit wrapper
+export { 
+  createGuardedAgent, 
+  wrapWithGuard, 
+  GuardedSolanaAgent,
+  GuardedAgentConfig,
+  GuardedAction 
+} from './wrapper';
+
 // Default export
 export { AgentGuard as default } from './guard';
