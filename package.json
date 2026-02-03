@@ -1,0 +1,23 @@
+{
+  "name": "@0xaxiom/agentguard",
+  "version": "0.1.0",
+  "description": "Security middleware for Solana agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "lint": "eslint src/"
+  },
+  "keywords": ["solana", "agent", "security", "middleware"],
+  "author": "Axiom <axiombot@proton.me>",
+  "license": "MIT",
+  "dependencies": {
+    "@solana/web3.js": "^1.95.0",
+    "solana-agent-kit": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}
