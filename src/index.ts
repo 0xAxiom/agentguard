@@ -8,30 +8,14 @@
  * - Audit trail
  */
 
-// Core firewall module
-export { 
-  TransactionFirewall,
-  SpendingLimits,
-  ProgramAllowlist,
-  TransactionSimulator,
-  SAFE_SYSTEM_PROGRAMS,
-  KNOWN_MALICIOUS_PROGRAMS,
-} from './firewall';
+// Main guard class
+export { AgentGuard, AgentGuardConfig, GuardResult } from './guard';
 
-export type {
-  FirewallConfig,
-  FirewallResult,
-  FirewallStatus,
-  SpendingLimitConfig,
-  AllowlistConfig,
-  ProgramCheckResult,
-  SimulatorConfig,
-  SimulationResult,
-  BalanceChange,
-} from './firewall';
+// Individual components
+export { TransactionFirewall, FirewallConfig, FirewallResult } from './firewall';
+export { PromptSanitizer, SanitizerConfig, SanitizeResult } from './sanitizer';
+export { SecretIsolator, IsolatorConfig, RedactResult } from './isolator';
+export { AuditLogger, AuditConfig, AuditEntry } from './audit';
 
-// TODO: Additional modules to be implemented
-// export { AgentGuard } from './guard';
-// export { PromptSanitizer } from './sanitizer';
-// export { SecretIsolator } from './isolator';
-// export { AuditLogger } from './audit';
+// Default export
+export { AgentGuard as default } from './guard';
