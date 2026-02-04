@@ -1,16 +1,25 @@
 /**
  * AuditLogger - Log every agent action for accountability
+ * 
+ * Supports three storage modes:
+ * - memory: In-process (default, fastest)
+ * - file: JSON file on disk
+ * - onchain: Solana blockchain via AgentGuard Anchor program
  */
 
 import { randomUUID } from 'crypto';
 
-export type StorageType = 'memory' | 'file';
+export type StorageType = 'memory' | 'file' | 'onchain';
 
 export interface AuditConfig {
   storage: StorageType;
   filePath?: string;
   includeTimestamps?: boolean;
   maxEntries?: number;  // max entries to keep in memory
+  /** Solana RPC URL for on-chain audit trail */
+  rpcUrl?: string;
+  /** Agent wallet keypair for signing on-chain transactions */
+  walletKeypair?: any;  // Keypair type (imported dynamically)
 }
 
 export interface AuditEntry {

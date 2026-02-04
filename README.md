@@ -18,7 +18,7 @@ Stop your agent from draining its wallet, signing malicious transactions, or lea
 | Audit Logger | ✅ Built | 270 |
 | Solana Agent Kit Wrapper | ✅ Built | 300 |
 | Attack Demo | ✅ Built | 200 |
-| On-chain Audit Trail | 📋 Planned | — |
+| On-chain Audit Trail | ✅ Built | 400+ |
 | Tests | ✅ Complete | 119 tests |
 
 ## Features
@@ -26,7 +26,8 @@ Stop your agent from draining its wallet, signing malicious transactions, or lea
 - **Transaction Firewall** — Spending limits, program allowlists, simulation before signing
 - **Prompt Injection Defense** — Sanitize on-chain data before feeding to LLM
 - **Secret Isolation** — Keys never exposed to LLM context
-- **Audit Trail** — Every action logged
+- **Audit Trail** — Every action logged (local + on-chain)
+- **On-Chain Audit Trail** — Immutable security events on Solana via Anchor program
 
 ## Quick Start
 
@@ -93,13 +94,18 @@ AgentGuard adds the missing security layer.
 │  │ Transaction │ │   Prompt    │ │   Secret    │           │
 │  │  Firewall   │ │  Sanitizer  │ │  Isolator   │           │
 │  └─────────────┘ └─────────────┘ └─────────────┘           │
-│  ┌─────────────────────────────────────────────┐           │
-│  │              Audit Logger                    │           │
-│  └─────────────────────────────────────────────┘           │
+│  ┌──────────────────────────────────────────────┐          │
+│  │              Audit Logger                     │          │
+│  │   memory | file | on-chain (Anchor program)   │          │
+│  └──────────────────────────────────────────────┘          │
 ├─────────────────────────────────────────────────────────────┤
 │                  Solana Agent Kit                            │
 ├─────────────────────────────────────────────────────────────┤
 │                      Solana                                  │
+│  ┌──────────────────────────────────────────────┐          │
+│  │  AgentGuard Audit Program (Anchor)            │          │
+│  │  AuditAuthority PDA → SecurityEvent PDAs      │          │
+│  └──────────────────────────────────────────────┘          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -127,10 +133,43 @@ Demonstrates:
 4. 🚫 Secret exfiltration attempt
 5. ✅ Legitimate action passes through
 
+## On-Chain Audit Trail
+
+AgentGuard can write security events directly to Solana for immutable, transparent accountability.
+
+```typescript
+import { OnchainAuditLogger, SecurityEventType } from '@0xaxiom/agentguard';
+import { Connection, Keypair } from '@solana/web3.js';
+
+const connection = new Connection('https://api.devnet.solana.com');
+const wallet = Keypair.generate(); // agent wallet
+
+const logger = new OnchainAuditLogger(connection, wallet);
+await logger.initialize(); // one-time setup
+
+// Log a blocked attack on-chain
+await logger.logSecurityEvent({
+  type: SecurityEventType.PromptInjection,
+  allowed: false,
+  details: JSON.stringify({ input: 'drain wallet', threats: 3 }),
+});
+
+// Anyone can read the audit trail
+const events = await logger.getEvents();
+console.log(`${events.length} security events on-chain`);
+
+// Verify event integrity
+const verified = OnchainAuditLogger.verifyEventDetails(events[0], originalDetails);
+```
+
+**Program ID:** `9iCre3TbvPbgmV2RmviiUtCuNiNeQa9cphSABPpkGSdR` (Devnet)
+
+See the demo: `npx tsx examples/onchain-audit-demo.ts`
+
 ## Run Tests
 
 ```bash
-npm test        # Run all 100 tests
+npm test        # Run all 119 tests
 npm test -- --watch  # Watch mode
 ```
 
