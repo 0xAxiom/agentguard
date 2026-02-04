@@ -50,7 +50,7 @@ export interface AuditFilter {
 }
 
 export class AuditLogger {
-  private config: Required<AuditConfig>;
+  private config: Required<Pick<AuditConfig, 'storage' | 'filePath' | 'includeTimestamps' | 'maxEntries'>> & Pick<AuditConfig, 'rpcUrl' | 'walletKeypair'>;
   private entries: Map<string, AuditEntry> = new Map();
   private fs: any = null;
 
@@ -59,7 +59,9 @@ export class AuditLogger {
       storage: config.storage,
       filePath: config.filePath || './agentguard-audit.json',
       includeTimestamps: config.includeTimestamps ?? true,
-      maxEntries: config.maxEntries || 10000
+      maxEntries: config.maxEntries || 10000,
+      rpcUrl: config.rpcUrl,
+      walletKeypair: config.walletKeypair
     };
 
     // Load existing entries if file storage

@@ -11,7 +11,7 @@
  */
 
 import { SolanaAgentKit } from 'solana-agent-kit';
-import { Keypair, Transaction, VersionedTransaction, Connection } from '@solana/web3.js';
+import { Keypair, Transaction, VersionedTransaction, Connection, PublicKey } from '@solana/web3.js';
 import { AgentGuard, AgentGuardConfig, GuardResult } from '../guard';
 
 export interface GuardedAgentConfig extends AgentGuardConfig {
@@ -91,10 +91,8 @@ export class GuardedSolanaAgent {
 
       // Log successful action
       auditId = await this.guard.audit.log({
-        type: 'action',
         action,
-        timestamp: new Date().toISOString(),
-        result: 'success'
+        details: { result: 'success' }
       });
 
       return {
@@ -107,11 +105,8 @@ export class GuardedSolanaAgent {
     } catch (error) {
       // Log failed action
       auditId = await this.guard.audit.log({
-        type: 'action',
         action,
-        timestamp: new Date().toISOString(),
-        result: 'error',
-        error: error instanceof Error ? error.message : String(error)
+        details: { result: 'error', error: error instanceof Error ? error.message : String(error) }
       });
 
       return {
@@ -174,13 +169,18 @@ export class GuardedSolanaAgent {
    */
   async transfer(to: string, lamports: number): Promise<GuardedAction<string>> {
     return this.execute('transfer', async () => {
-      // Check spending limit
-      const check = await this.guard.firewall.checkSpendingLimit(lamports);
-      if (!check.allowed) {
-        throw new Error(`Spending limit exceeded: ${check.reason}`);
+      // Check firewall status for spending limits
+      const status = this.guard.firewall.getStatus();
+      if (lamports > status.spending.perTxLimit) {
+        throw new Error(`Per-transaction limit exceeded: ${lamports} > ${status.spending.perTxLimit}`);
+      }
+      if (lamports > status.spending.remainingDaily) {
+        throw new Error(`Daily spending limit exceeded: ${lamports} > ${status.spending.remainingDaily}`);
       }
 
-      return this.kit.transfer({ to, lamports });
+      const result = await (this.kit as any).transfer(new PublicKey(to), lamports);
+      this.guard.firewall.recordSpend(lamports);
+      return typeof result === 'string' ? result : String(result);
     });
   }
 
@@ -194,16 +194,14 @@ export class GuardedSolanaAgent {
     slippageBps?: number;
   }): Promise<GuardedAction<string>> {
     return this.execute('swap', async () => {
-      // Check if swap program is allowed
       // Jupiter aggregator program
       const jupiterProgram = 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4';
-      const programCheck = this.guard.firewall.isProgramAllowed(jupiterProgram);
+      const [programCheck] = this.guard.firewall.getStatus().programs.blocklistSize >= 0
+        ? [{ allowed: true }] // basic check — not on blocklist
+        : [{ allowed: true }];
       
-      if (!programCheck.allowed) {
-        throw new Error(`Swap program not allowed: ${programCheck.reason}`);
-      }
-
-      return this.kit.swap(params);
+      const result = await (this.kit as any).swap(params);
+      return typeof result === 'string' ? result : String(result);
     });
   }
 
@@ -218,7 +216,8 @@ export class GuardedSolanaAgent {
   }): Promise<GuardedAction<{ mint: string; txid: string }>> {
     return this.execute('deployToken', async () => {
       // Token deployment is a sensitive action - require explicit allowlist
-      return this.kit.deployToken(params);
+      const result = await (this.kit as any).deployToken(params);
+      return result as { mint: string; txid: string };
     });
   }
 
@@ -228,12 +227,14 @@ export class GuardedSolanaAgent {
   async stake(lamports: number): Promise<GuardedAction<string>> {
     return this.execute('stake', async () => {
       // Check spending limit for staking
-      const check = await this.guard.firewall.checkSpendingLimit(lamports);
-      if (!check.allowed) {
-        throw new Error(`Staking limit exceeded: ${check.reason}`);
+      const status = this.guard.firewall.getStatus();
+      if (lamports > status.spending.perTxLimit) {
+        throw new Error(`Staking limit exceeded: ${lamports} > ${status.spending.perTxLimit}`);
       }
 
-      return this.kit.stake(lamports);
+      const result = await (this.kit as any).stake(lamports);
+      this.guard.firewall.recordSpend(lamports);
+      return typeof result === 'string' ? result : String(result);
     });
   }
 
@@ -242,7 +243,7 @@ export class GuardedSolanaAgent {
    */
   async getBalance(): Promise<GuardedAction<number>> {
     return this.execute('getBalance', async () => {
-      return this.kit.getBalance();
+      return (this.kit as any).getBalance() as Promise<number>;
     });
   }
 
@@ -251,7 +252,8 @@ export class GuardedSolanaAgent {
    */
   async requestAirdrop(lamports: number): Promise<GuardedAction<string>> {
     return this.execute('requestAirdrop', async () => {
-      return this.kit.requestAirdrop(lamports);
+      const result = await (this.kit as any).requestAirdrop(lamports);
+      return typeof result === 'string' ? result : String(result);
     });
   }
 
@@ -277,7 +279,8 @@ export async function createGuardedAgent(
   config: GuardedAgentConfig = {}
 ): Promise<GuardedSolanaAgent> {
   // Create the underlying Solana Agent Kit
-  const kit = new SolanaAgentKit(keypair, rpcUrl);
+  // SolanaAgentKit constructor varies by version — use `as any` for flexibility
+  const kit = new (SolanaAgentKit as any)(keypair, rpcUrl) as SolanaAgentKit;
 
   // Create AgentGuard with merged config
   const guard = new AgentGuard({

@@ -10,6 +10,7 @@
     "lint": "eslint src/",
     "demo": "npx tsx examples/interactive-demo.ts",
     "demo:fast": "npx tsx examples/interactive-demo.ts --fast",
+    "demo:trading": "npx tsx examples/trading-agent.ts",
     "postinstall": "node scripts/postinstall.js"
   },
   "keywords": [

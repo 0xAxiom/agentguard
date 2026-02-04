@@ -129,6 +129,14 @@ npx tsx examples/interactive-demo.ts        # Interactive (press Enter between s
 npx tsx examples/interactive-demo.ts --fast  # Fast mode (no pauses)
 ```
 
+### Trading Agent Example
+
+See a realistic DeFi trading agent protected by all four security layers:
+
+```bash
+npx tsx examples/trading-agent.ts
+```
+
 ### Attack Simulation
 
 See AgentGuard block real attacks in one shot:
