@@ -7,7 +7,10 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "demo": "npx tsx examples/interactive-demo.ts",
+    "demo:fast": "npx tsx examples/interactive-demo.ts --fast",
+    "postinstall": "node scripts/postinstall.js"
   },
   "keywords": [
     "solana",

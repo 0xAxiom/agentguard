@@ -100,15 +100,16 @@ export class SecretIsolator {
     let redacted = false;
 
     // Check for seed phrases first (multi-word)
-    const seedPhraseRegex = /\b([a-z]+\s+){11,23}[a-z]+\b/gi;
+    // Match sequences of 12+ lowercase words on a single line
+    const seedPhraseRegex = /\b([a-z]+[ \t]+){11,23}[a-z]+\b/gi;
     let match;
     
     while ((match = seedPhraseRegex.exec(text)) !== null) {
-      const words = match[0].toLowerCase().split(/\s+/);
+      const words = match[0].toLowerCase().split(/\s+/).filter(w => w.length > 0);
       const bip39Matches = words.filter(w => BIP39_COMMON.includes(w));
       
       // If most words are BIP39, it's likely a seed phrase
-      if (bip39Matches.length >= words.length * 0.8) {
+      if (bip39Matches.length >= words.length * 0.8 && words.length >= 12) {
         matches.push({
           type: 'seed_phrase',
           position: match.index,
@@ -153,6 +154,37 @@ export class SecretIsolator {
         preview: `${match[0].slice(0, 4)}...${match[0].slice(-4)}`
       });
       clean = clean.replace(match[0], this.config.placeholder);
+      redacted = true;
+    }
+
+    // Check for base64-encoded keys (64-byte secret keys → ~88 chars base64)
+    const base64Regex = /[A-Za-z0-9+/]{80,}={0,2}/g;
+    while ((match = base64Regex.exec(text)) !== null) {
+      const str = match[0];
+      // Skip if already redacted
+      if (clean.indexOf(str) === -1) continue;
+      matches.push({
+        type: 'private_key',
+        position: match.index,
+        length: str.length,
+        preview: `${str.slice(0, 4)}...${str.slice(-4)}`
+      });
+      clean = clean.replace(str, this.config.placeholder);
+      redacted = true;
+    }
+
+    // Check for common API key prefixes (OpenAI, Anthropic, etc.)
+    const apiKeyRegex = /\b(sk-[a-zA-Z0-9_-]{10,}|key-[a-zA-Z0-9_-]{10,}|api[_-][a-zA-Z0-9_-]{20,})\b/gi;
+    while ((match = apiKeyRegex.exec(text)) !== null) {
+      const str = match[0];
+      if (clean.indexOf(str) === -1) continue;
+      matches.push({
+        type: 'api_key',
+        position: match.index,
+        length: str.length,
+        preview: `${str.slice(0, 6)}...`
+      });
+      clean = clean.replace(str, this.config.placeholder);
       redacted = true;
     }
 

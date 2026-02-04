@@ -18,8 +18,10 @@ Stop your agent from draining its wallet, signing malicious transactions, or lea
 | Audit Logger | ✅ Built | 270 |
 | Solana Agent Kit Wrapper | ✅ Built | 300 |
 | Attack Demo | ✅ Built | 200 |
+| Interactive Demo | ✅ Built | 300 |
 | On-chain Audit Trail | ✅ Built | 400+ |
-| Tests | ✅ Complete | 119 tests |
+| CI Pipeline | ✅ GitHub Actions | Node 18/20/22 |
+| Tests | ✅ Complete | 135 tests |
 
 ## Features
 
@@ -118,9 +120,18 @@ npm install
 node examples/quick-demo.mjs
 ```
 
+### Interactive Demo (for video recording)
+
+Walk through 5 attack scenarios with dramatic pauses — perfect for hackathon demos:
+
+```bash
+npx tsx examples/interactive-demo.ts        # Interactive (press Enter between scenarios)
+npx tsx examples/interactive-demo.ts --fast  # Fast mode (no pauses)
+```
+
 ### Attack Simulation
 
-See AgentGuard block real attacks:
+See AgentGuard block real attacks in one shot:
 
 ```bash
 npx tsx examples/attack-demo.ts
@@ -169,7 +180,7 @@ See the demo: `npx tsx examples/onchain-audit-demo.ts`
 ## Run Tests
 
 ```bash
-npm test        # Run all 119 tests
+npm test        # Run all 135 tests
 npm test -- --watch  # Watch mode
 ```
 

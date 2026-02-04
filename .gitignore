@@ -6,3 +6,4 @@ dist/
 .env.local
 target/
 program-keypair.json
+agentguard-audit.json
