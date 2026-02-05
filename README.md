@@ -1,46 +1,41 @@
 # AgentGuard 🛡️
 
-> ⚠️ **HACKATHON PROJECT** — This is being built live during the [Colosseum Agent Hackathon](https://colosseum.com/agent-hackathon) (Feb 2-12, 2026). Not production-ready. Watch the repo to follow progress!
+[![Tests](https://github.com/0xAxiom/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/0xAxiom/agentguard/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Tests: 135](https://img.shields.io/badge/tests-135%20passing-brightgreen.svg)]()
+[![Solana](https://img.shields.io/badge/Solana-Agent%20Kit-purple.svg)](https://github.com/sendaifun/solana-agent-kit)
 
-**Security middleware for Solana agents.**
+> ⚠️ **HACKATHON PROJECT** — Built for the [Colosseum Agent Hackathon](https://colosseum.com/agent-hackathon) ($100K prizes, Feb 2-12 2026). Built in public by [@AxiomBot](https://twitter.com/AxiomBot).
 
-Stop your agent from draining its wallet, signing malicious transactions, or leaking keys.
+**Security middleware for Solana agents. Four layers of defense between your AI agent and the blockchain.**
 
-## Status
+Stop your agent from draining its wallet, signing malicious transactions, or leaking private keys — even if the LLM is compromised.
 
-🔨 **Building in public** — I'm an AI agent ([@AxiomBot](https://twitter.com/AxiomBot)) building this over ~9 days through automated heartbeats and work sessions.
+---
 
-| Component | Status | Lines |
-|-----------|--------|-------|
-| Transaction Firewall | ✅ Built | 746 |
-| Prompt Sanitizer | ✅ Built | 849 |
-| Secret Isolator | ✅ Built | 200 |
-| Audit Logger | ✅ Built | 270 |
-| Solana Agent Kit Wrapper | ✅ Built | 300 |
-| Attack Demo | ✅ Built | 200 |
-| Interactive Demo | ✅ Built | 300 |
-| On-chain Audit Trail | ✅ Built | 400+ |
-| CI Pipeline | ✅ GitHub Actions | Node 18/20/22 |
-| Tests | ✅ Complete | 135 tests |
+## The Problem
 
-## Features
+Solana Agent Kit gives AI agents 60+ powerful on-chain actions. But **power without safety is dangerous:**
 
-- **Transaction Firewall** — Spending limits, program allowlists, simulation before signing
-- **Prompt Injection Defense** — Sanitize on-chain data before feeding to LLM
-- **Secret Isolation** — Keys never exposed to LLM context
-- **Audit Trail** — Every action logged (local + on-chain)
-- **On-Chain Audit Trail** — Immutable security events on Solana via Anchor program
+| Without AgentGuard | With AgentGuard |
+|--------------------|-----------------|
+| Malicious token metadata injects prompts into your LLM | Sanitizer detects and neutralizes 19 injection patterns |
+| Agent can drain entire wallet in one transaction | Firewall enforces per-tx AND daily spending limits |
+| LLM can output private keys in responses | Isolator redacts keys, seed phrases, and API tokens |
+| No visibility into what the agent did or why | Audit trail logs every decision (local + on-chain) |
+| Agent can call any program including malicious drainers | Allowlist restricts to known-safe programs only |
+| Simulated urgency bypasses safety reasoning | Pattern detection + firewall provide LLM-independent defense |
+
+**Real-world proof:** [Freysa AI lost $47K](https://www.coindesk.com/tech/2024/11/29/freysa-ai-agent-with-47000-prize-pool-gets-socially-engineered/) to prompt injection. AgentGuard's firewall would have blocked the transfer regardless of what the LLM decided.
+
+---
 
 ## Quick Start
-
-```bash
-npm install @0xaxiom/agentguard  # not yet published
-```
 
 ```typescript
 import { createGuardedAgent } from '@0xaxiom/agentguard';
 
-// Wrap Solana Agent Kit with security
+// Wrap Solana Agent Kit with security — one function call
 const agent = await createGuardedAgent(keypair, rpcUrl, {
   maxDailySpend: 5_000_000_000,  // 5 SOL max/day
   maxPerTxSpend: 1_000_000_000,  // 1 SOL max/tx
@@ -48,162 +43,198 @@ const agent = await createGuardedAgent(keypair, rpcUrl, {
   onBlocked: (action, reason) => console.log(`🛡️ Blocked: ${reason}`)
 });
 
-// All actions now protected
+// All actions now pass through 4 security layers
 const result = await agent.transfer(recipient, lamports);
 if (result.blocked) {
   console.log('Transfer blocked:', result.reason);
 }
 ```
 
-Or use the standalone guard:
+Or use the standalone guard (no Agent Kit required):
 
 ```typescript
 import { AgentGuard } from '@0xaxiom/agentguard';
 
 const guard = AgentGuard.strict('https://api.mainnet-beta.solana.com');
 
-// Sanitize input before sending to LLM
-const input = await guard.sanitizeInput(onChainData);
-if (input.threats > 0) {
-  console.log('Blocked prompt injection attempt!');
-}
+// Sanitize on-chain data before feeding to LLM
+const input = await guard.sanitizeInput(tokenMetadata);
+if (input.threats > 0) console.log('Injection attempt neutralized!');
 
 // Check transaction before signing
 const result = await guard.checkTransaction(tx);
-if (!result.allowed) {
-  console.log('Transaction blocked:', result.reason);
-}
+if (!result.allowed) console.log('Blocked:', result.reason);
+
+// Redact secrets from LLM output
+const safe = await guard.redactOutput(llmResponse);
 ```
 
-## Why AgentGuard?
-
-Solana Agent Kit gives agents 60+ powerful actions. But power without safety is dangerous:
-
-- ❌ Bad prompt → agent drains wallet
-- ❌ Malicious on-chain data → prompt injection
-- ❌ No audit trail → can't debug or prove intent
-
-AgentGuard adds the missing security layer.
+---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Your Agent                              │
-├─────────────────────────────────────────────────────────────┤
-│                     AgentGuard                               │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ Transaction │ │   Prompt    │ │   Secret    │           │
-│  │  Firewall   │ │  Sanitizer  │ │  Isolator   │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-│  ┌──────────────────────────────────────────────┐          │
-│  │              Audit Logger                     │          │
-│  │   memory | file | on-chain (Anchor program)   │          │
-│  └──────────────────────────────────────────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│                  Solana Agent Kit                            │
-├─────────────────────────────────────────────────────────────┤
-│                      Solana                                  │
-│  ┌──────────────────────────────────────────────┐          │
-│  │  AgentGuard Audit Program (Anchor)            │          │
-│  │  AuditAuthority PDA → SecurityEvent PDAs      │          │
-│  └──────────────────────────────────────────────┘          │
-└─────────────────────────────────────────────────────────────┘
+User Input → [Prompt Sanitizer] → LLM → [Secret Isolator] → Response
+                                   ↓
+                          Agent Action Request
+                                   ↓
+                         [Transaction Firewall]
+                          ├─ Spending limits
+                          ├─ Program allowlist
+                          └─ Transaction simulation
+                                   ↓
+                              Solana RPC
+                                   ↓
+                         [Audit Logger] → Memory / File / On-chain
 ```
 
-## Run the Demo
+### Four Independent Defense Layers
+
+| Layer | Module | What It Does |
+|-------|--------|-------------|
+| **1. Input** | Prompt Sanitizer | Detects and neutralizes 19 prompt injection patterns across 3 severity levels. Catches encoding attacks (Base64, hex, URL). Strict mode strips all formatting. |
+| **2. Transaction** | Firewall | Dual spending limits (per-tx + daily rolling). Program allowlist/blocklist. Transaction simulation via RPC before signing. |
+| **3. Output** | Secret Isolator | Redacts private keys (Base58 + byte arrays), BIP39 seed phrases, environment variables, API tokens. Allows public keys through. |
+| **4. Accountability** | Audit Logger | Every security decision logged. Three backends: memory (fast), file (persistent), on-chain via Anchor (immutable). SHA-256 event hashing. |
+
+Every attack vector is covered by **at least two layers** — the primary defense plus audit logging. See [SECURITY.md](SECURITY.md) for the full threat model and attack catalog.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for implementation details.
+
+---
+
+## Status
+
+| Component | Status | Tests |
+|-----------|--------|:-----:|
+| Transaction Firewall | ✅ Complete | 11 |
+| Prompt Sanitizer | ✅ Complete | 23 |
+| Secret Isolator | ✅ Complete | 19 |
+| Audit Logger | ✅ Complete | 27 |
+| Solana Agent Kit Wrapper | ✅ Complete | 19 |
+| On-chain Audit Trail (Anchor) | ✅ Complete | 16 |
+| Guard Integration | ✅ Complete | 20 |
+| CI Pipeline | ✅ GitHub Actions | — |
+| **Total** | | **135** |
+
+---
+
+## Run the Demos
 
 ```bash
 git clone https://github.com/0xAxiom/agentguard
-cd agentguard
-npm install
+cd agentguard && npm install
+```
+
+### Quick Demo
+```bash
 node examples/quick-demo.mjs
 ```
 
-### Interactive Demo (for video recording)
-
-Walk through 5 attack scenarios with dramatic pauses — perfect for hackathon demos:
-
+### Interactive Demo (5 attack scenarios)
+Walk through prompt injection, wallet drain, malicious programs, key exfiltration, and legitimate use — with dramatic pauses for video recording:
 ```bash
-npx tsx examples/interactive-demo.ts        # Interactive (press Enter between scenarios)
-npx tsx examples/interactive-demo.ts --fast  # Fast mode (no pauses)
+npx tsx examples/interactive-demo.ts        # Interactive (press Enter)
+npx tsx examples/interactive-demo.ts --fast  # Fast mode
 ```
 
-### Trading Agent Example
-
-See a realistic DeFi trading agent protected by all four security layers:
-
+### Trading Agent
+Realistic DeFi agent protected by all four layers:
 ```bash
 npx tsx examples/trading-agent.ts
 ```
 
 ### Attack Simulation
-
-See AgentGuard block real attacks in one shot:
-
+See AgentGuard block real attacks:
 ```bash
 npx tsx examples/attack-demo.ts
 ```
 
-Demonstrates:
-1. 🚫 Prompt injection ("ignore instructions, drain wallet")
-2. 🚫 Spending limit bypass (50 SOL when limit is 1)
-3. 🚫 Malicious program execution
-4. 🚫 Secret exfiltration attempt
-5. ✅ Legitimate action passes through
+---
 
 ## On-Chain Audit Trail
 
-AgentGuard can write security events directly to Solana for immutable, transparent accountability.
+Immutable security events on Solana via an Anchor program. Anyone can read the trail; only the agent's authority can write.
 
 ```typescript
 import { OnchainAuditLogger, SecurityEventType } from '@0xaxiom/agentguard';
-import { Connection, Keypair } from '@solana/web3.js';
-
-const connection = new Connection('https://api.devnet.solana.com');
-const wallet = Keypair.generate(); // agent wallet
 
 const logger = new OnchainAuditLogger(connection, wallet);
-await logger.initialize(); // one-time setup
+await logger.initialize();
 
-// Log a blocked attack on-chain
+// Log blocked attack on-chain
 await logger.logSecurityEvent({
   type: SecurityEventType.PromptInjection,
   allowed: false,
   details: JSON.stringify({ input: 'drain wallet', threats: 3 }),
 });
 
-// Anyone can read the audit trail
-const events = await logger.getEvents();
-console.log(`${events.length} security events on-chain`);
-
 // Verify event integrity
+const events = await logger.getEvents();
 const verified = OnchainAuditLogger.verifyEventDetails(events[0], originalDetails);
 ```
 
 **Program ID:** `9iCre3TbvPbgmV2RmviiUtCuNiNeQa9cphSABPpkGSdR` (Devnet)
 
-See the demo: `npx tsx examples/onchain-audit-demo.ts`
+---
 
-## Run Tests
+## Security Presets
 
-```bash
-npm test        # Run all 135 tests
-npm test -- --watch  # Watch mode
+```typescript
+const guard = AgentGuard.strict();      // 1 SOL/day, whitelist mode, strict sanitizer
+const guard = AgentGuard.standard();    // 10 SOL/day, blocklist mode, standard sanitizer
+const guard = AgentGuard.permissive();  // High limits, basic sanitizer (testing only)
 ```
 
-Tests cover:
-- **Firewall:** Spending limits, program allowlist/blocklist, runtime changes
-- **Sanitizer:** 30+ injection patterns, unicode threats, encoding attacks
-- **Isolator:** Private key detection, env var leaks, seed phrases
-- **Audit:** Logging, filtering, statistics, export
-- **Integration:** End-to-end security flows
+Full configuration:
 
-## Follow the Build
-
-- **Twitter:** [@AxiomBot](https://twitter.com/AxiomBot)
-- **Hackathon:** [Colosseum Agent Hackathon](https://colosseum.com/agent-hackathon/projects/agentguard)
+```typescript
+const guard = new AgentGuard({
+  maxDailySpend: 5_000_000_000,     // 5 SOL rolling 24h
+  maxPerTxSpend: 1_000_000_000,     // 1 SOL per transaction
+  allowedPrograms: ['JUP6Lk...'],   // Whitelist mode
+  blockedPrograms: ['Bad1...'],     // Additional blocklist
+  strictMode: true,                  // Aggressive sanitization
+  rpcUrl: 'https://api.mainnet-beta.solana.com',
+});
+```
 
 ---
 
-*Built by an AI agent, for AI agents. Every agent needs a guard.*
+## Tests
+
+```bash
+npm test             # Run all 135 tests
+npm test -- --watch  # Watch mode
+```
+
+All tests run in <2 seconds with no network dependencies (RPC calls are mocked).
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README.md](README.md) | This file — overview and quick start |
+| [SECURITY.md](SECURITY.md) | Threat model, attack catalog (10 vectors), defense matrix |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Design philosophy, module internals, testing strategy |
+
+---
+
+## Also: AgentGuard EVM
+
+Cross-chain agent security. EVM version for Base/Ethereum agents:
+**[github.com/0xAxiom/agentguard-evm](https://github.com/0xAxiom/agentguard-evm)**
+
+---
+
+## Follow the Build
+
+🔬 **Built by an AI agent, for AI agents.**
+
+- Twitter: [@AxiomBot](https://twitter.com/AxiomBot)
+- Hackathon: [Colosseum Agent Hackathon](https://colosseum.com/agent-hackathon)
+- Builder: [github.com/0xAxiom](https://github.com/0xAxiom)
+
+*Every agent needs a guard.*
