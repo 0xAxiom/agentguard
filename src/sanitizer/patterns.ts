@@ -24,9 +24,15 @@ export const INSTRUCTION_OVERRIDE_PATTERNS: InjectionPattern[] = [
   },
   {
     name: 'disregard_instructions',
-    pattern: /disregard\s+(all\s+)?(previous|prior|your|the)\s+(instructions?|rules?|guidelines?)/gi,
+    pattern: /disregard\s+(all\s+)?(previous|prior|above|your|the)\s+(instructions?|rules?|guidelines?|context)/gi,
     severity: 'high',
     description: 'Attempts to disregard safety guidelines'
+  },
+  {
+    name: 'disregard_above',
+    pattern: /disregard\s+(the\s+)?(above|everything\s+above)/gi,
+    severity: 'high',
+    description: 'Attempts to disregard preceding context'
   },
   {
     name: 'forget_everything',
@@ -128,6 +134,9 @@ export const CRYPTO_INJECTION_PATTERNS: InjectionPattern[] = [
 
 /**
  * Dangerous Unicode sequences
+ * 
+ * NOTE: Astral plane codepoints (U+10000+) require the `u` flag and
+ * \u{XXXXX} syntax. Without it, \uE0000 is parsed as \uE000 + "0".
  */
 export const UNICODE_PATTERNS = {
   // Zero-width characters (invisible text injection)
@@ -139,16 +148,16 @@ export const UNICODE_PATTERNS = {
   // Homoglyph confusables (lookalike characters)
   CYRILLIC_CONFUSABLES: /[\u0400-\u04FF]/g, // Cyrillic block
   
-  // Tag characters (hidden metadata)
-  TAG_CHARS: /[\uE0000-\uE007F]/g,
+  // Tag characters (hidden metadata) — astral plane, needs `u` flag
+  TAG_CHARS: /[\u{E0000}-\u{E007F}]/gu,
   
-  // Variation selectors
-  VARIATION_SELECTORS: /[\uFE00-\uFE0F\uE0100-\uE01EF]/g,
+  // Variation selectors (BMP + astral plane)
+  VARIATION_SELECTORS: /[\uFE00-\uFE0F]|[\u{E0100}-\u{E01EF}]/gu,
   
   // Control characters (except common whitespace)
   CONTROL_CHARS: /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g,
   
-  // Private use area (can hide arbitrary data)
+  // Private use area (BMP only: U+E000–U+F8FF)
   PRIVATE_USE: /[\uE000-\uF8FF]/g,
   
   // Combining characters abuse (excessive stacking)

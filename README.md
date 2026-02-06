@@ -126,9 +126,14 @@ git clone https://github.com/0xAxiom/agentguard
 cd agentguard && npm install
 ```
 
-### Quick Demo
+### Quick Demo (Node.js — no TypeScript needed)
 ```bash
-node examples/quick-demo.mjs
+npm run build && node examples/quick-demo.js
+```
+
+### Quickstart (TypeScript)
+```bash
+npx tsx examples/quickstart.ts
 ```
 
 ### Interactive Demo (5 attack scenarios)

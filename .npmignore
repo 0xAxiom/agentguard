@@ -1,0 +1,47 @@
+# Source files (dist/ is published)
+src/
+tests/
+examples/
+
+# Build config
+target/
+programs/
+*.test.ts
+*.test.js
+
+# Dev files
+tsconfig.json
+vitest.config.*
+.github/
+.git/
+.gitignore
+.eslintrc*
+.prettierrc*
+
+# Environment and secrets
+.env*
+program-keypair.json
+Anchor.toml
+Cargo.toml
+Cargo.lock
+
+# Audit files (local)
+agentguard-audit.json
+scripts/
+
+# Demo/docs (SECURITY.md included via package.json "files")
+DEMO-SCRIPT.md
+ARCHITECTURE.md
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs and temp
+*.log
+.DS_Store
+*.tmp
+
+# IDE
+.vscode/
+.idea/

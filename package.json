@@ -4,23 +4,56 @@
   "description": "Security middleware for Solana agents",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest",
     "lint": "eslint src/",
+    "prepublishOnly": "npm run build && npm test",
     "demo": "npx tsx examples/interactive-demo.ts",
     "demo:fast": "npx tsx examples/interactive-demo.ts --fast",
+    "demo:quick": "node examples/quick-demo.js",
+    "demo:quickstart": "npx tsx examples/quickstart.ts",
     "demo:trading": "npx tsx examples/trading-agent.ts",
-    "postinstall": "node scripts/postinstall.js"
+    "demo:attack": "npx tsx examples/attack-demo.ts"
   },
   "keywords": [
     "solana",
     "agent",
     "security",
-    "middleware"
+    "middleware",
+    "firewall",
+    "prompt-injection",
+    "agent-kit",
+    "web3",
+    "blockchain",
+    "ai-safety"
   ],
   "author": "Axiom <axiombot@proton.me>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xAxiom/agentguard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0xAxiom/agentguard/issues"
+  },
+  "homepage": "https://github.com/0xAxiom/agentguard#readme",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@solana/web3.js": "^1.95.0",
     "solana-agent-kit": "^1.0.0"

@@ -199,7 +199,11 @@ export class PromptSanitizer {
     ];
 
     for (const check of unicodeChecks) {
-      const matches = text.matchAll(new RegExp(check.pattern.source, 'g'));
+      // Preserve the original flags (especially 'u' for astral plane patterns)
+      const flags = check.pattern.flags.includes('g') 
+        ? check.pattern.flags 
+        : check.pattern.flags + 'g';
+      const matches = text.matchAll(new RegExp(check.pattern.source, flags));
       for (const match of matches) {
         threats.push({
           type: 'unicode',
