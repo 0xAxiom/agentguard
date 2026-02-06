@@ -19,7 +19,7 @@ Solana Agent Kit gives AI agents 60+ powerful on-chain actions. But **power with
 
 | Without AgentGuard | With AgentGuard |
 |--------------------|-----------------|
-| Malicious token metadata injects prompts into your LLM | Sanitizer detects and neutralizes 19 injection patterns |
+| Malicious token metadata injects prompts into your LLM | Sanitizer detects and neutralizes 20 injection patterns |
 | Agent can drain entire wallet in one transaction | Firewall enforces per-tx AND daily spending limits |
 | LLM can output private keys in responses | Isolator redacts keys, seed phrases, and API tokens |
 | No visibility into what the agent did or why | Audit trail logs every decision (local + on-chain) |

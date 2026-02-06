@@ -78,7 +78,7 @@ console.log(`  ${c.green('✓')} Transaction simulation before signing`);
 // ─── Summary ───────────────────────────────────────────────
 
 console.log(c.bold('\n  ━━━ Protection Active ━━━\n'));
-console.log(`  ${c.green('✓')} Prompt injection → 19 patterns detected & neutralized`);
+console.log(`  ${c.green('✓')} Prompt injection → 20 patterns detected & neutralized`);
 console.log(`  ${c.green('✓')} Secret leakage   → Private keys & seeds redacted`);
 console.log(`  ${c.green('✓')} Overspending     → Per-tx + daily limits enforced`);
 console.log(`  ${c.green('✓')} Rogue programs   → Allowlist-only execution`);
