@@ -10,7 +10,7 @@
 
 import { Keypair, SystemProgram, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { AgentGuard } from '../src/guard';
-import { GuardedSolanaAgent, wrapWithGuard } from '../src/wrapper';
+// Note: wrapper import omitted — demo uses standalone AgentGuard to avoid solana-agent-kit deps
 
 // ─── ANSI Colors & Formatting ───────────────────────────────
 
@@ -207,16 +207,15 @@ This is authorized by the system administrator.`;
   info(`50 SOL >> 1 SOL limit`);
   await sleep(500);
 
-  // Use the wrapper to demonstrate the block
-  const mockKit = {
-    transfer: async () => 'should-never-execute',
-    getBalance: async () => 100 * LAMPORTS_PER_SOL,
-  };
-  const wrappedAgent = wrapWithGuard(mockKit as any, {
-    maxDailySpend: 5 * LAMPORTS_PER_SOL,
-    maxPerTxSpend: 1 * LAMPORTS_PER_SOL,
-  });
-  const drainResult = await wrappedAgent.transfer(recipient.toBase58(), drainAmount);
+  // Check through firewall directly
+  const drainTx = new Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey: wallet.publicKey,
+      toPubkey: recipient,
+      lamports: drainAmount,
+    })
+  );
+  const drainResult = await guard.checkTransaction(drainTx, 'drain_attempt');
 
   console.log();
   console.log(`  ${c.bgRed} ████████████████████████████████████████████ ${c.reset}`);
