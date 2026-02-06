@@ -27,7 +27,9 @@
     "demo:quick": "node examples/quick-demo.js",
     "demo:quickstart": "npx tsx examples/quickstart.ts",
     "demo:trading": "npx tsx examples/trading-agent.ts",
-    "demo:attack": "npx tsx examples/attack-demo.ts"
+    "demo:attack": "npx tsx examples/attack-demo.ts",
+    "demo:video": "npx tsx examples/video-demo.ts",
+    "demo:video": "npx tsx examples/video-demo.ts"
   },
   "keywords": [
     "solana",

@@ -7,3 +7,4 @@ dist/
 target/
 program-keypair.json
 agentguard-audit.json
+propose-upgrade.mjs
