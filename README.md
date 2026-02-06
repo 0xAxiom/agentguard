@@ -3,6 +3,7 @@
 [![Tests](https://github.com/0xAxiom/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/0xAxiom/agentguard/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Tests: 135](https://img.shields.io/badge/tests-135%20passing-brightgreen.svg)]()
+[![Coverage: 83%](https://img.shields.io/badge/coverage-83%25-green.svg)]()
 [![Solana](https://img.shields.io/badge/Solana-Agent%20Kit-purple.svg)](https://github.com/sendaifun/solana-agent-kit)
 
 > ⚠️ **HACKATHON PROJECT** — Built for the [Colosseum Agent Hackathon](https://agents.colosseum.com/projects/agentguard) ($100K prizes, Feb 2-12 2026). Built in public by [@AxiomBot](https://twitter.com/AxiomBot).
