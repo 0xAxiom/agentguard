@@ -188,6 +188,91 @@ describe('GuardedSolanaAgent', () => {
     });
   });
 
+  describe('transfer()', () => {
+    it('should succeed for amounts within limits', async () => {
+      const result = await agent.transfer('11111111111111111111111111111111', 100_000_000);
+      expect(result.success).toBe(true);
+      expect(result.result).toBe('mock-tx-id');
+    });
+
+    it('should block when per-tx limit exceeded', async () => {
+      // Per-tx limit is 1 SOL = 1_000_000_000
+      const result = await agent.transfer('11111111111111111111111111111111', 2_000_000_000);
+      expect(result.success).toBe(false);
+      expect(result.reason).toContain('Per-transaction limit exceeded');
+    });
+
+    it('should block when daily limit exceeded', async () => {
+      // Record 9.5 SOL of previous spending
+      agent.guard.firewall.recordSpend(9_500_000_000);
+      // Try to spend 0.6 SOL more — exceeds 10 SOL daily
+      const result = await agent.transfer('11111111111111111111111111111111', 600_000_000);
+      expect(result.success).toBe(false);
+      expect(result.reason).toContain('Daily spending limit exceeded');
+    });
+  });
+
+  describe('swap()', () => {
+    it('should succeed for a valid swap', async () => {
+      // Need to add swap mock to mockKit
+      mockKit.swap = vi.fn().mockResolvedValue('mock-swap-id');
+      agent = new GuardedSolanaAgent(mockKit, guard, {});
+
+      const result = await agent.swap({
+        inputMint: 'So11111111111111111111111111111111111111112',
+        outputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        amount: 1_000_000,
+        slippageBps: 50,
+      });
+      expect(result.success).toBe(true);
+      expect(result.result).toBe('mock-swap-id');
+    });
+  });
+
+  describe('deployToken()', () => {
+    it('should succeed for token deployment', async () => {
+      mockKit.deployToken = vi.fn().mockResolvedValue({ mint: 'mock-mint', txid: 'mock-txid' });
+      agent = new GuardedSolanaAgent(mockKit, guard, {});
+
+      const result = await agent.deployToken({
+        name: 'TestToken',
+        symbol: 'TST',
+        decimals: 9,
+        initialSupply: 1_000_000,
+      });
+      expect(result.success).toBe(true);
+      expect(result.result).toEqual({ mint: 'mock-mint', txid: 'mock-txid' });
+    });
+  });
+
+  describe('stake()', () => {
+    it('should succeed for amounts within limits', async () => {
+      mockKit.stake = vi.fn().mockResolvedValue('mock-stake-id');
+      agent = new GuardedSolanaAgent(mockKit, guard, {});
+
+      const result = await agent.stake(500_000_000);
+      expect(result.success).toBe(true);
+      expect(result.result).toBe('mock-stake-id');
+    });
+
+    it('should block when staking limit exceeded', async () => {
+      const result = await agent.stake(2_000_000_000); // 2 SOL > 1 SOL per-tx
+      expect(result.success).toBe(false);
+      expect(result.reason).toContain('Staking limit exceeded');
+    });
+  });
+
+  describe('requestAirdrop()', () => {
+    it('should succeed for airdrop request', async () => {
+      mockKit.requestAirdrop = vi.fn().mockResolvedValue('mock-airdrop-id');
+      agent = new GuardedSolanaAgent(mockKit, guard, {});
+
+      const result = await agent.requestAirdrop(1_000_000_000);
+      expect(result.success).toBe(true);
+      expect(result.result).toBe('mock-airdrop-id');
+    });
+  });
+
   describe('audit trail', () => {
     it('should track all actions', async () => {
       await agent.getBalance();
