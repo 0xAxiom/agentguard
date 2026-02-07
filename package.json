@@ -29,7 +29,8 @@
     "demo:trading": "npx tsx examples/trading-agent.ts",
     "demo:attack": "npx tsx examples/attack-demo.ts",
     "demo:video": "npx tsx examples/video-demo.ts",
-    "demo:showcase": "npx tsx examples/showcase.ts"
+    "demo:showcase": "npx tsx examples/showcase.ts",
+    "demo:agent": "npx tsx examples/conversational-agent.ts"
   },
   "keywords": [
     "solana",

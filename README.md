@@ -2,9 +2,9 @@
 
 [![Tests](https://github.com/0xAxiom/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/0xAxiom/agentguard/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests: 149](https://img.shields.io/badge/tests-149%20passing-brightgreen.svg)]()
+[![Tests: 239](https://img.shields.io/badge/tests-239%20passing-brightgreen.svg)]()
 [![Colosseum Hackathon](https://img.shields.io/badge/Colosseum-Agent%20Hackathon-orange.svg)](https://agents.colosseum.com/projects/agentguard)
-[![Coverage: 83%](https://img.shields.io/badge/coverage-83%25-green.svg)]()
+[![Coverage: 89%](https://img.shields.io/badge/coverage-89%25-green.svg)]()
 [![Solana](https://img.shields.io/badge/Solana-Agent%20Kit-purple.svg)](https://github.com/sendaifun/solana-agent-kit)
 
 > ⚠️ **HACKATHON PROJECT** — Built for the [Colosseum Agent Hackathon](https://agents.colosseum.com/projects/agentguard) ($100K prizes, Feb 2-12 2026). Built in public by [@AxiomBot](https://twitter.com/AxiomBot).
@@ -21,7 +21,7 @@ Stop your agent from draining its wallet, signing malicious transactions, or lea
 
 - 🔍 **20+ prompt injection patterns detected** — instruction overrides, role hijacking, Base64-encoded payloads, unicode exploits
 - 🧱 **4 independent security layers, zero runtime dependencies** — each layer works alone; together they're airtight
-- ⚡ **149 tests, <1s runtime** — battle-tested, zero-config, drop-in protection for any Solana agent
+- ⚡ **239 tests, 89% coverage, <1s runtime** — battle-tested, zero-config, drop-in protection for any Solana agent
 
 ---
 
@@ -154,16 +154,16 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for implementation details.
 
 | Component | Status | Tests |
 |-----------|--------|:-----:|
-| Transaction Firewall | ✅ Complete | 11 |
-| Prompt Sanitizer | ✅ Complete | 23 |
+| Transaction Firewall | ✅ Complete | 32 |
+| Prompt Sanitizer | ✅ Complete | 74 |
 | Secret Isolator | ✅ Complete | 19 |
 | Audit Logger | ✅ Complete | 27 |
-| Solana Agent Kit Wrapper | ✅ Complete | 19 |
+| Solana Agent Kit Wrapper | ✅ Complete | 37 |
 | On-chain Audit Trail (Anchor) | ✅ Complete | 16 |
 | Guard Integration | ✅ Complete | 20 |
+| End-to-End Integration | ✅ Complete | 14 |
 | CI Pipeline | ✅ GitHub Actions | — |
-| Integration | ✅ Complete | 14 |
-| **Total** | | **149** |
+| **Total** | | **239** |
 
 ---
 
@@ -189,6 +189,12 @@ Walk through prompt injection, wallet drain, malicious programs, key exfiltratio
 ```bash
 npx tsx examples/interactive-demo.ts        # Interactive (press Enter)
 npx tsx examples/interactive-demo.ts --fast  # Fast mode
+```
+
+### Conversational Agent (NEW — Recommended)
+Full agent loop showing real-world protection: input sanitization → LLM decision → firewall → output redaction. 10 scenarios including injection attacks, wallet drains, encoded payloads, and daily limit exhaustion:
+```bash
+npm run demo:agent
 ```
 
 ### Trading Agent
@@ -263,7 +269,7 @@ const guard = new AgentGuard({
 ## Tests
 
 ```bash
-npm test             # Run all 149 tests
+npm test             # Run all 239 tests
 npm test -- --watch  # Watch mode
 ```
 
@@ -278,6 +284,69 @@ All tests run in <2 seconds with no network dependencies (RPC calls are mocked).
 | [README.md](README.md) | This file — overview and quick start |
 | [SECURITY.md](SECURITY.md) | Threat model, attack catalog (10 vectors), defense matrix |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Design philosophy, module internals, testing strategy |
+
+---
+
+## Integration with LangChain / Vercel AI SDK
+
+AgentGuard works as middleware in any agent framework. Here's how to integrate with LangChain (used by Solana Agent Kit):
+
+```typescript
+import { AgentGuard } from '@0xaxiom/agentguard';
+import { SolanaAgentKit } from 'solana-agent-kit';
+
+const guard = AgentGuard.strict();
+const kit = new SolanaAgentKit(keypair, rpcUrl, openAIKey);
+
+// Middleware: sanitize all tool inputs
+async function safeToolCall(toolName: string, input: string) {
+  // 1. Sanitize input (catches injection in on-chain data)
+  const sanitized = guard.sanitizer.sanitize(input);
+  if (sanitized.rejected) {
+    return { error: `Blocked: ${sanitized.threats.length} injection patterns detected` };
+  }
+
+  // 2. Execute tool with firewall checks
+  const result = await kit[toolName](sanitized.clean);
+
+  // 3. Redact secrets from response
+  const safe = guard.isolator.redact(String(result));
+  return { result: safe.clean };
+}
+
+// Or use the drop-in wrapper (wraps all 60+ Agent Kit tools):
+import { createGuardedAgent } from '@0xaxiom/agentguard';
+const agent = await createGuardedAgent(keypair, rpcUrl, {
+  maxDailySpend: 5_000_000_000,
+  maxPerTxSpend: 1_000_000_000,
+  strictMode: true,
+});
+```
+
+### Vercel AI SDK
+
+```typescript
+import { AgentGuard } from '@0xaxiom/agentguard';
+
+const guard = AgentGuard.strict();
+
+// Use in tool definitions
+const tools = {
+  transfer: tool({
+    description: 'Transfer SOL',
+    parameters: z.object({ to: z.string(), amount: z.number() }),
+    execute: async ({ to, amount }) => {
+      const lamports = amount * LAMPORTS_PER_SOL;
+      const status = guard.firewall.getStatus();
+      if (lamports > status.spending.perTxLimit) {
+        return `Blocked: ${amount} SOL exceeds limit`;
+      }
+      guard.firewall.recordSpend(lamports);
+      // ... execute transfer
+    },
+  }),
+};
+```
 
 ---
 

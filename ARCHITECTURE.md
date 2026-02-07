@@ -89,7 +89,7 @@ Factory presets configure spending limits, audit storage, and strict mode simult
 
 ## Testing Strategy
 
-135 tests across 7 test files:
+239 tests across 11 test files:
 - Unit tests for each module in isolation
 - Integration tests through the Guard class
 - End-to-end security flow tests
