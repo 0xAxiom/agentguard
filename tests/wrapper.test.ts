@@ -320,3 +320,110 @@ describe('wrapWithGuard()', () => {
     expect(agent.kit).toBe(mockKit);
   });
 });
+
+describe('GuardedSolanaAgent tool methods', () => {
+  let guard: AgentGuard;
+  let mockKit: any;
+  let agent: GuardedSolanaAgent;
+
+  beforeEach(() => {
+    guard = new AgentGuard({
+      maxDailySpend: 10 * LAMPORTS_PER_SOL,
+      maxPerTxSpend: 1 * LAMPORTS_PER_SOL,
+      strictMode: true
+    });
+
+    mockKit = {
+      transfer: vi.fn().mockResolvedValue('mock-tx-id'),
+      swap: vi.fn().mockResolvedValue('mock-swap-id'),
+      getBalance: vi.fn().mockResolvedValue(10 * LAMPORTS_PER_SOL),
+      requestAirdrop: vi.fn().mockResolvedValue('mock-airdrop-id'),
+      deployToken: vi.fn().mockResolvedValue({ mint: 'mock-mint', txid: 'mock-txid' }),
+      stake: vi.fn().mockResolvedValue('mock-stake-id')
+    };
+
+    agent = new GuardedSolanaAgent(mockKit, guard, {});
+  });
+
+  describe('transfer()', () => {
+    it('should succeed for amounts within per-tx limit', async () => {
+      const result = await agent.transfer('11111111111111111111111111111111', 0.5 * LAMPORTS_PER_SOL);
+      expect(result.success).toBe(true);
+      expect(result.result).toBe('mock-tx-id');
+    });
+
+    it('should block amounts exceeding per-tx limit', async () => {
+      const result = await agent.transfer('11111111111111111111111111111111', 2 * LAMPORTS_PER_SOL);
+      expect(result.success).toBe(false);
+      expect(result.reason).toContain('Per-transaction limit exceeded');
+    });
+
+    it('should block amounts exceeding daily limit', async () => {
+      // Exhaust most of the daily limit
+      guard.firewall.recordSpend(9.5 * LAMPORTS_PER_SOL);
+      const result = await agent.transfer('11111111111111111111111111111111', 0.8 * LAMPORTS_PER_SOL);
+      expect(result.success).toBe(false);
+      expect(result.reason).toContain('Daily spending limit exceeded');
+    });
+
+    it('should record spend after successful transfer', async () => {
+      await agent.transfer('11111111111111111111111111111111', 0.5 * LAMPORTS_PER_SOL);
+      const status = guard.firewall.getStatus();
+      expect(status.spending.dailySpend).toBe(0.5 * LAMPORTS_PER_SOL);
+    });
+  });
+
+  describe('swap()', () => {
+    it('should succeed for valid swap params', async () => {
+      const result = await agent.swap({
+        inputMint: 'So11111111111111111111111111111111111111112',
+        outputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        amount: 1000000,
+        slippageBps: 50,
+      });
+      expect(result.success).toBe(true);
+      expect(result.result).toBe('mock-swap-id');
+    });
+  });
+
+  describe('deployToken()', () => {
+    it('should succeed for valid deployment', async () => {
+      const result = await agent.deployToken({
+        name: 'Test Token',
+        symbol: 'TEST',
+        decimals: 9,
+        initialSupply: 1000000,
+      });
+      expect(result.success).toBe(true);
+      expect(result.result).toEqual({ mint: 'mock-mint', txid: 'mock-txid' });
+    });
+  });
+
+  describe('stake()', () => {
+    it('should succeed for amounts within limit', async () => {
+      const result = await agent.stake(0.5 * LAMPORTS_PER_SOL);
+      expect(result.success).toBe(true);
+      expect(result.result).toBe('mock-stake-id');
+    });
+
+    it('should block amounts exceeding per-tx limit', async () => {
+      const result = await agent.stake(2 * LAMPORTS_PER_SOL);
+      expect(result.success).toBe(false);
+      expect(result.reason).toContain('Staking limit exceeded');
+    });
+
+    it('should record spend after successful stake', async () => {
+      await agent.stake(0.3 * LAMPORTS_PER_SOL);
+      const status = guard.firewall.getStatus();
+      expect(status.spending.dailySpend).toBe(0.3 * LAMPORTS_PER_SOL);
+    });
+  });
+
+  describe('requestAirdrop()', () => {
+    it('should succeed', async () => {
+      const result = await agent.requestAirdrop(1 * LAMPORTS_PER_SOL);
+      expect(result.success).toBe(true);
+      expect(result.result).toBe('mock-airdrop-id');
+    });
+  });
+});
