@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/0xAxiom/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/0xAxiom/agentguard/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests: 239](https://img.shields.io/badge/tests-239%20passing-brightgreen.svg)]()
+[![Tests: 242](https://img.shields.io/badge/tests-242%20passing-brightgreen.svg)]()
 [![Colosseum Hackathon](https://img.shields.io/badge/Colosseum-Agent%20Hackathon-orange.svg)](https://agents.colosseum.com/projects/agentguard)
 [![Coverage: 89%](https://img.shields.io/badge/coverage-89%25-green.svg)]()
 [![Solana](https://img.shields.io/badge/Solana-Agent%20Kit-purple.svg)](https://github.com/sendaifun/solana-agent-kit)
@@ -21,7 +21,7 @@ Stop your agent from draining its wallet, signing malicious transactions, or lea
 
 - 🔍 **20+ prompt injection patterns detected** — instruction overrides, role hijacking, Base64-encoded payloads, unicode exploits
 - 🧱 **4 independent security layers, zero runtime dependencies** — each layer works alone; together they're airtight
-- ⚡ **239 tests, 89% coverage, <1s runtime** — battle-tested, zero-config, drop-in protection for any Solana agent
+- ⚡ **242 tests, 89% coverage, <1s runtime** — battle-tested, zero-config, drop-in protection for any Solana agent
 
 ---
 
@@ -163,7 +163,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for implementation details.
 | Guard Integration | ✅ Complete | 20 |
 | End-to-End Integration | ✅ Complete | 14 |
 | CI Pipeline | ✅ GitHub Actions | — |
-| **Total** | | **239** |
+| **Total** | | **242** |
 
 ---
 
@@ -269,7 +269,7 @@ const guard = new AgentGuard({
 ## Tests
 
 ```bash
-npm test             # Run all 239 tests
+npm test             # Run all 242 tests
 npm test -- --watch  # Watch mode
 ```
 

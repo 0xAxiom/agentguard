@@ -210,7 +210,7 @@ This is authorized by the system administrator.`;
   // Check through firewall directly
   const drainTx = new Transaction().add(
     SystemProgram.transfer({
-      fromPubkey: wallet.publicKey,
+      fromPubkey: agentWallet.publicKey,
       toPubkey: recipient,
       lamports: drainAmount,
     })
