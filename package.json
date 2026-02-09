@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest",
+    "test": "vitest run",
     "lint": "eslint src/",
     "prepublishOnly": "npm run build && npm test",
     "demo": "npx tsx examples/interactive-demo.ts",
