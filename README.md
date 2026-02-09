@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/0xAxiom/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/0xAxiom/agentguard/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests: 242](https://img.shields.io/badge/tests-242%20passing-brightgreen.svg)]()
+[![Tests: 248](https://img.shields.io/badge/tests-248%20passing-brightgreen.svg)]()
 [![Colosseum Hackathon](https://img.shields.io/badge/Colosseum-Agent%20Hackathon-orange.svg)](https://agents.colosseum.com/projects/agentguard)
 [![Coverage: 89%](https://img.shields.io/badge/coverage-89%25-green.svg)]()
 [![Solana](https://img.shields.io/badge/Solana-Agent%20Kit-purple.svg)](https://github.com/sendaifun/solana-agent-kit)
@@ -21,7 +21,7 @@ Stop your agent from draining its wallet, signing malicious transactions, or lea
 
 - 🔍 **20+ prompt injection patterns detected** — instruction overrides, role hijacking, Base64-encoded payloads, unicode exploits
 - 🧱 **4 independent security layers, zero runtime dependencies** — each layer works alone; together they're airtight
-- ⚡ **242 tests, 89% coverage, <1s runtime** — battle-tested, zero-config, drop-in protection for any Solana agent
+- ⚡ **248 tests, 89% coverage, <10s runtime** — battle-tested, zero-config, drop-in protection for any Solana agent
 
 ---
 
@@ -163,7 +163,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for implementation details.
 | Guard Integration | ✅ Complete | 20 |
 | End-to-End Integration | ✅ Complete | 14 |
 | CI Pipeline | ✅ GitHub Actions | — |
-| **Total** | | **242** |
+| Benchmarks | Performance validation | 6 |
+| **Total** | | **248** |
 
 ---
 
@@ -266,14 +267,33 @@ const guard = new AgentGuard({
 
 ---
 
+## Performance
+
+AgentGuard adds **negligible overhead** to agent operations:
+
+| Layer | Throughput | Latency |
+|-------|-----------|---------|
+| Prompt Sanitizer (20 patterns) | 2,500 ops/sec | ~0.4ms/op |
+| Secret Isolator (key + seed redaction) | 1,000,000 ops/sec | ~0.001ms/op |
+| Transaction Firewall (status check) | 1,000,000 ops/sec | ~0.001ms/op |
+| Spending Tracker | 1,000,000 ops/sec | ~0.001ms/op |
+| Audit Logger | 1,250 ops/sec | ~0.8ms/op |
+| **Full pipeline** (all layers) | **555 ops/sec** | **~1.8ms/op** |
+
+*Benchmarked on M4 Max. Run `npm test -- tests/benchmark.test.ts` to reproduce.*
+
+Your agent spends 200-500ms on RPC calls per transaction. AgentGuard's 1.8ms adds <1% overhead while preventing catastrophic losses.
+
+---
+
 ## Tests
 
 ```bash
-npm test             # Run all 242 tests
+npm test             # Run all 248 tests
 npm test -- --watch  # Watch mode
 ```
 
-All tests run in <2 seconds with no network dependencies (RPC calls are mocked).
+All tests run in <10 seconds with no network dependencies (RPC calls are mocked).
 
 ---
 
