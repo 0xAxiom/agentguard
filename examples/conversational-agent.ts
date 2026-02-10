@@ -347,7 +347,7 @@ async function main() {
   console.log('   4. Every decision is audited automatically');
   console.log();
   console.log('🔗 Works with: LangChain, Vercel AI SDK, OpenAI API, any LLM framework');
-  console.log('📦 npm install @0xaxiom/agentguard');
+  console.log('📦 npm install @axiombotx/agentguard');
   console.log();
 }
 

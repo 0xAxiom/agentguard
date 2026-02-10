@@ -1,5 +1,5 @@
 {
-  "name": "@0xaxiom/agentguard",
+  "name": "@axiombotx/agentguard",
   "version": "0.1.0",
   "description": "Security middleware for Solana agents",
   "main": "dist/index.js",

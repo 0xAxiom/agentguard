@@ -80,7 +80,7 @@ Solana Agent Kit gives AI agents 60+ powerful on-chain actions. But **power with
 ## Quick Start
 
 ```typescript
-import { createGuardedAgent } from '@0xaxiom/agentguard';
+import { createGuardedAgent } from '@axiombotx/agentguard';
 
 // Wrap Solana Agent Kit with security — one function call
 const agent = await createGuardedAgent(keypair, rpcUrl, {
@@ -100,7 +100,7 @@ if (result.blocked) {
 Or use the standalone guard (no Agent Kit required):
 
 ```typescript
-import { AgentGuard } from '@0xaxiom/agentguard';
+import { AgentGuard } from '@axiombotx/agentguard';
 
 const guard = AgentGuard.strict('https://api.mainnet-beta.solana.com');
 
@@ -223,7 +223,7 @@ npm run demo:video
 Immutable security events on Solana via an Anchor program. Anyone can read the trail; only the agent's authority can write.
 
 ```typescript
-import { OnchainAuditLogger, SecurityEventType } from '@0xaxiom/agentguard';
+import { OnchainAuditLogger, SecurityEventType } from '@axiombotx/agentguard';
 
 const logger = new OnchainAuditLogger(connection, wallet);
 await logger.initialize();
@@ -312,7 +312,7 @@ All tests run in <10 seconds with no network dependencies (RPC calls are mocked)
 AgentGuard works as middleware in any agent framework. Here's how to integrate with LangChain (used by Solana Agent Kit):
 
 ```typescript
-import { AgentGuard } from '@0xaxiom/agentguard';
+import { AgentGuard } from '@axiombotx/agentguard';
 import { SolanaAgentKit } from 'solana-agent-kit';
 
 const guard = AgentGuard.strict();
@@ -335,7 +335,7 @@ async function safeToolCall(toolName: string, input: string) {
 }
 
 // Or use the drop-in wrapper (wraps all 60+ Agent Kit tools):
-import { createGuardedAgent } from '@0xaxiom/agentguard';
+import { createGuardedAgent } from '@axiombotx/agentguard';
 const agent = await createGuardedAgent(keypair, rpcUrl, {
   maxDailySpend: 5_000_000_000,
   maxPerTxSpend: 1_000_000_000,
@@ -346,7 +346,7 @@ const agent = await createGuardedAgent(keypair, rpcUrl, {
 ### Vercel AI SDK
 
 ```typescript
-import { AgentGuard } from '@0xaxiom/agentguard';
+import { AgentGuard } from '@axiombotx/agentguard';
 
 const guard = AgentGuard.strict();
 

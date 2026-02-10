@@ -67,7 +67,7 @@ async function main() {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   console.log('━━━ Agent Kit Integration ━━━\n');
   console.log('  // Wrap your existing agent in one line:');
-  console.log('  import { createGuardedAgent } from "@0xaxiom/agentguard";');
+  console.log('  import { createGuardedAgent } from "@axiombotx/agentguard";');
   console.log('  const agent = await createGuardedAgent(keypair, rpcUrl, {');
   console.log('    maxDailySpend: 5_000_000_000,  // 5 SOL/day');
   console.log('    strictMode: true');

@@ -313,7 +313,7 @@ Status: Success`;
 
   console.log(`  ${c.bold}AgentGuard${c.reset} — 4 layers of defense, zero runtime dependencies.`);
   console.log();
-  console.log(`  ${c.cyan}📦 npm install @0xaxiom/agentguard${c.reset}`);
+  console.log(`  ${c.cyan}📦 npm install @axiombotx/agentguard${c.reset}`);
   console.log(`  ${c.cyan}🔗 github.com/0xAxiom/agentguard${c.reset}`);
   console.log(`  ${c.cyan}🏆 Built for the Colosseum Agent Hackathon${c.reset}`);
   console.log();
